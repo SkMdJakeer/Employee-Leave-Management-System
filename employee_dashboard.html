@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - ELMS</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dashboard-card {
+            transition: transform 0.2s ease-in-out;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+        }
+        .leave-calendar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .quick-actions {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .balance-card {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-calendar-alt me-2"></i>ELMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('request_leave') }}">Request Leave</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('my_requests') }}">My Requests</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>{{ current_user.first_name }} {{ current_user.last_name }}
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user-edit me-2"></i>Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Welcome Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <h2 class="card-title mb-1">Welcome back, {{ current_user.first_name }}!</h2>
+                        <p class="text-muted mb-0">{{ current_user.department }} Department</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Leave Balance Summary -->
+        <div class="row mb-4">
+            {% for balance in leave_balances %}
+            <div class="col-md-6 col-lg-3 mb-3">
+                <div class="card dashboard-card balance-card">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-check fa-2x mb-2"></i>
+                        <h5 class="card-title">{{ balance.leave_type.name }}</h5>
+                        <h2 class="mb-1">{{ balance.remaining_days }}</h2>
+                        <small>of {{ balance.total_days }} days remaining</small>
+                        <div class="progress mt-2" style="height: 8px;">
+                            <div class="progress-bar bg-light" role="progressbar" 
+                                 style="width: {{ (balance.remaining_days / balance.total_days * 100) if balance.total_days > 0 else 0 }}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <div class="card dashboard-card quick-actions">
+                    <div class="card-body text-center">
+                        <i class="fas fa-plus-circle fa-3x mb-3"></i>
+                        <h4>Need Time Off?</h4>
+                        <p class="mb-3">Submit a new leave request quickly and easily</p>
+                        <a href="{{ url_for('request_leave') }}" class="btn btn-light btn-lg">
+                            <i class="fas fa-calendar-plus me-2"></i>Request Leave
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="card dashboard-card leave-calendar">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                        <h4>Track Your Requests</h4>
+                        <p class="mb-3">View and manage all your leave requests</p>
+                        <a href="{{ url_for('my_requests') }}" class="btn btn-light btn-lg">
+                            <i class="fas fa-list me-2"></i>View Requests
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Leave Requests -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card dashboard-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock me-2"></i>Recent Leave Requests
+                        </h5>
+                        <a href="{{ url_for('my_requests') }}" class="btn btn-outline-primary btn-sm">View All</a>
+                    </div>
+                    <div class="card-body">
+                        {% if recent_requests %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Leave Type</th>
+                                        <th>Duration</th>
+                                        <th>Days</th>
+                                        <th>Status</th>
+                                        <th>Submitted</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for request in recent_requests %}
+                                    <tr>
+                                        <td>
+                                            <i class="fas fa-calendar me-2"></i>
+                                            {{ request.leave_type.name }}
+                                        </td>
+                                        <td>{{ request.start_date.strftime('%b %d') }} - {{ request.end_date.strftime('%b %d, %Y') }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ request.days_requested }} days</span>
+                                        </td>
+                                        <td>
+                                            {% if request.status == 'pending' %}
+                                            <span class="badge bg-warning status-badge">
+                                                <i class="fas fa-clock me-1"></i>Pending
+                                            </span>
+                                            {% elif request.status == 'approved' %}
+                                            <span class="badge bg-success status-badge">
+                                                <i class="fas fa-check me-1"></i>Approved
+                                            </span>
+                                            {% elif request.status == 'rejected' %}
+                                            <span class="badge bg-danger status-badge">
+                                                <i class="fas fa-times me-1"></i>Rejected
+                                            </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ request.created_at.strftime('%b %d, %Y') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No leave requests yet. Ready to take some time off?</p>
+                            <a href="{{ url_for('request_leave') }}" class="btn btn-primary">
+                                <i class="fas fa-calendar-plus me-2"></i>Submit Your First Request
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Auto-refresh for status updates -->
+    <script>
+        // Auto-refresh dashboard stats every 30 seconds
+        setInterval(function() {
+            fetch('/api/dashboard_stats')
+                .then(response => response.json())
+                .then(data => {
+                    // Update any live stats if needed
+                    console.log('Dashboard stats updated:', data);
+                })
+                .catch(error => console.error('Error updating stats:', error));
+        }, 30000);
+    </script>
+</body>
+</html>

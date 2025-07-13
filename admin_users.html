@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - ELMS Admin</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #fff7e6;
+            color: #5c3d00;
+        }
+
+        .navbar, .card-header, .btn-primary, .btn-warning, .btn-info {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+            color: white !important;
+        }
+
+        .navbar .navbar-brand,
+        .navbar .nav-link,
+        .navbar .nav-link.active,
+        .navbar .nav-link:hover {
+            color: #5c3d00 !important;
+        }
+
+        .card {
+            background-color: #fffaf2;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary,
+        .btn-warning,
+        .btn-info {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-primary:hover,
+        .btn-warning:hover,
+        .btn-info:hover {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            border-radius: 10px;
+            background-color: #fff3cd;
+            color: #664d03;
+            border: 1px solid #ffeeba;
+        }
+
+        .table thead {
+            background-color: #fbbf24;
+            color: white;
+        }
+
+        .progress-bar {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+        }
+
+        .modal-header {
+            background-color: #fbbf24;
+            color: white;
+        }
+
+        .status-pending {
+            color: #f59e0b;
+        }
+
+        .status-approved {
+            color: #10b981;
+        }
+
+        .status-rejected {
+            color: #ef4444;
+        }
+    </style>
+
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-calendar-alt me-2"></i>ELMS
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-file-alt me-1"></i>My Requests
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-check-circle me-1"></i>Manage Requests
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-cog me-1"></i>Admin
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Dashboard</a></li>
+                            <li><a class="dropdown-item active" href="#">User Management</a></li>
+                            <li><a class="dropdown-item" href="#">Reports</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>Admin User
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">
+                                <i class="fas fa-sign-out-alt me-1"></i>Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="mb-0">
+                        <i class="fas fa-users me-2"></i>User Management
+                    </h1>
+                    <p class="text-muted mb-0">Manage employees, roles, and permissions</p>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                        <i class="fas fa-plus me-1"></i>Add New User
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        <div class="alert-container" id="alertContainer"></div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-cards">
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card total">
+                        <div class="stat-number text-info" id="totalUsers">8</div>
+                        <div class="stat-label">Total Users</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card admin">
+                        <div class="stat-number text-danger" id="totalAdmins">2</div>
+                        <div class="stat-label">Administrators</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card manager">
+                        <div class="stat-number text-warning" id="totalManagers">3</div>
+                        <div class="stat-label">Managers</div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card employee">
+                        <div class="stat-number text-success" id="totalEmployees">3</div>
+                        <div class="stat-label">Employees</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search and Filter Section -->
+        <div class="search-section">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="quick-actions">
+                        <button class="btn btn-outline-primary active" id="filterAll" onclick="filterUsers('all')">
+                            <i class="fas fa-users me-1"></i>All Users
+                        </button>
+                        <button class="btn btn-outline-danger" id="filterAdmin" onclick="filterUsers('admin')">
+                            <i class="fas fa-user-shield me-1"></i>Admins
+                        </button>
+                        <button class="btn btn-outline-warning" id="filterManager" onclick="filterUsers('manager')">
+                            <i class="fas fa-user-tie me-1"></i>Managers
+                        </button>
+                        <button class="btn btn-outline-success" id="filterEmployee" onclick="filterUsers('employee')">
+                            <i class="fas fa-user me-1"></i>Employees
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" class="form-control" id="userSearch" placeholder="Search users by name, email, or department..." onkeyup="searchUsers()">
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col-md-4">
+                    <select class="form-select" id="departmentFilter" onchange="filterByDepartment()">
+                        <option value="">All Departments</option>
+                        <option value="HR">Human Resources</option>
+                        <option value="IT">Information Technology</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Sales">Sales</option>
+                        <option value="Operations">Operations</option>
+                        <option value="Legal">Legal</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <select class="form-select" id="sortBy" onchange="sortUsers()">
+                        <option value="name">Sort by Name</option>
+                        <option value="email">Sort by Email</option>
+                        <option value="department">Sort by Department</option>
+                        <option value="created">Sort by Join Date</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-secondary w-100" onclick="clearFilters()">
+                        <i class="fas fa-times me-1"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users List -->
+        <div id="usersContainer">
+            <!-- Sample User 1 - Admin -->
+            <div class="user-card admin" data-role="admin" data-department="IT" data-name="John Smith" data-email="john.smith@company.com" data-created="2023-01-15" data-user-id="1">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div class="user-avatar mx-auto">JS</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="user-info">
+                            <h5 class="mb-1">John Smith</h5>
+                            <p class="text-muted mb-2">john.smith@company.com</p>
+                            <div class="mb-2">
+                                <span class="role-badge role-admin">Administrator</span>
+                                <span class="status-badge status-active ms-2">Active</span>
+                            </div>
+                            <div class="user-meta">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>Department:</strong> IT</p>
+                                        <p><strong>Username:</strong> jsmith</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>Employee ID:</strong> #1</p>
+                                        <p><strong>Joined:</strong> Jan 15, 2023</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="action-buttons">
+                            <button class="btn btn-outline-primary btn-sm" onclick="editUser(1)">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="resetPassword(1)">
+                                <i class="fas fa-key me-1"></i>Reset Password
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="revokeAdmin(1)">
+                                <i class="fas fa-user-minus me-1"></i>Revoke Admin
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample User 2 - Manager -->
+            <div class="user-card manager" data-role="manager" data-department="HR" data-name="Sarah Johnson" data-email="sarah.johnson@company.com" data-created="2023-02-20" data-user-id="2">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div class="user-avatar mx-auto">SJ</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="user-info">
+                            <h5 class="mb-1">Sarah Johnson</h5>
+                            <p class="text-muted mb-2">sarah.johnson@company.com</p>
+                            <div class="mb-2">
+                                <span class="role-badge role-manager">Manager</span>
+                                <span class="status-badge status-active ms-2">Active</span>
+                            </div>
+                            <div class="user-meta">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>Department:</strong> HR</p>
+                                        <p><strong>Username:</strong> sjohnson</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>Employee ID:</strong> #2</p>
+                                        <p><strong>Joined:</strong> Feb 20, 2023</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="action-buttons">
+                            <button class="btn btn-outline-primary btn-sm" onclick="editUser(2)">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="resetPassword(2)">
+                                <i class="fas fa-key me-1"></i>Reset Password
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm" onclick="revokeManager(2)">
+                                <i class="fas fa-user-minus me-1"></i>Revoke Manager
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="makeAdmin(2)">
+                                <i class="fas fa-user-shield me-1"></i>Make Admin
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteUser(2)">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sample User 3 - Employee -->
+            <div class="user-card employee" data-role="employee" data-department="Finance" data-name="Michael Brown" data-email="michael.brown@company.com" data-created="2023-03-10" data-user-id="3">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div class="user-avatar mx-auto">MB</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="user-info">
+                            <h5 class="mb-1">Michael Brown</h5>
+                            <p class="text-muted mb-2">michael.brown@company.com</p>
+                            <div class="mb-2">
+                                <span class="role-badge role-employee">Employee</span>
+                                <span class="status-badge status-active ms-2">Active</span>
+                            </div>
+                            <div class="user-meta">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>Department:</strong> Finance</p>
+                                        <p><strong>Username:</strong> mbrown</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>Employee ID:</strong> #3</p>
+                                        <p><strong>Joined:</strong> Mar 10, 2023</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="action-buttons">
+                            <button class="btn btn-outline-primary btn-sm" onclick="editUser(3)">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="resetPassword(3)">
+                                <i class="fas fa-key me-1"></i>Reset Password
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="makeManager(3)">
+                                <i class="fas fa-user-tie me-1"></i>Make Manager
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="makeAdmin(3)">
+                                <i class="fas fa-user-shield me-1"></i>Make Admin
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteUser(3)">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional sample users -->
+            <div class="user-card employee" data-role="employee" data-department="Marketing" data-name="Emma Davis" data-email="emma.davis@company.com" data-created="2023-04-05" data-user-id="4">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div class="user-avatar mx-auto">ED</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="user-info">
+                            <h5 class="mb-1">Emma Davis</h5>
+                            <p class="text-muted mb-2">emma.davis@company.com</p>
+                            <div class="mb-2">
+                                <span class="role-badge role-employee">Employee</span>
+                                <span class="status-badge status-active ms-2">Active</span>
+                            </div>
+                            <div class="user-meta">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>Department:</strong> Marketing</p>
+                                        <p><strong>Username:</strong> edavis</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>Employee ID:</strong> #4</p>
+                                        <p><strong>Joined:</strong> Apr 05, 2023</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="action-buttons">
+                            <button class="btn btn-outline-primary btn-sm" onclick="editUser(4)">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-outline-info btn-sm" onclick="resetPassword(4)">
+                                <i class="fas fa-key me-1"></i>Reset Password
+                            </button>
+                            <button class="btn btn-outline-success btn-sm" onclick="makeManager(4)">
+                                <i class="fas fa-user-tie me-1"></i>Make Manager
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="makeAdmin(4)">
+                                <i class="fas fa-user-shield me-1"></i>Make Admin
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deleteUser(4)">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-card manager" data-role="manager" data-department="Sales" data-name="David Wilson" data-email="david.wilson@company.com" data-created="2023-01-25" data-user-id="5">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-center">
+                        <div class="user-avatar mx-auto">DW</div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="user-info">
+                            <h5 class="mb-1">David Wilson</h5>
+                            <p class="text-muted mb-2">david.wilson@company.com</p>
+                            <div class="mb-2">
+                                <span class="role-badge role-manager">Manager</span>
+                                <span class="status-badge status-active ms-2">Active</span>
+                            </div>
+                            <div class="user-meta">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <p><strong>Department:</strong> Sales</p>
+                                        <p><strong>Username:</strong> dwilson</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p><strong>Employee ID:</strong> #5</p>
+                                        <p><strong>Joined:</strong> Jan 25, 2023</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                

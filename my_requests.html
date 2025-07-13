@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Leave Requests</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa; /* Light gray background */
+            color: #2d3748; /* Dark gray text */
+        }
+        .navbar {
+            background-color: #667eea !important; /* Primary blue/purple navbar */
+        }
+        .card {
+            background-color: #ffffff; /* White card background */
+            border: 1px solid #e2e8f0; /* Light gray border */
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            background-color: #ebf4ff; /* Very light blue header */
+            border-bottom: 1px solid #c3dafe;
+            color: #434190;
+        }
+        .btn-primary {
+            background-color: #667eea; /* Primary button color */
+            border-color: #5a67d8;
+        }
+        .btn-primary:hover {
+            background-color: #5a67d8; /* Slightly darker on hover */
+            border-color: #4c51bf;
+        }
+        .btn-outline-primary {
+            color: #667eea;
+            border-color: #667eea;
+        }
+        .btn-outline-primary:hover {
+            background-color: #667eea;
+            color: white;
+        }
+        .table {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .table thead {
+            background-color: #667eea;
+            color: white;
+        }
+        .status-pending {
+            color: #ed8936; /* Orange for pending */
+        }
+        .status-approved {
+            color: #38a169; /* Green for approved */
+        }
+        .status-rejected {
+            color: #e53e3e; /* Red for rejected */
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .nav-link.active {
+            font-weight: 600;
+            border-bottom: 2px solid white;
+        }
+        .alert-info {
+            background-color: #ebf4ff;
+            border-color: #c3dafe;
+            color: #434190;
+        }
+        .modal-header {
+            background-color: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Employee Leave Management</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{{ url_for('my_requests') }}">My Requests</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('request_leave') }}">Request Leave</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">My Leave Requests</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if requests %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Leave Type</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Days</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Submitted On</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                            <tr>
+                                <td>{{ request.leave_type.name }}</td>
+                                <td>{{ request.start_date.strftime('%d-%m-%Y') }}</td>
+                                <td>{{ request.end_date.strftime('%d-%m-%Y') }}</td>
+                                <td>{{ request.days_requested }}</td>
+                                <td>{{ request.reason[:30] }}{% if request.reason|length > 30 %}...{% endif %}</td>
+                                <td class="status-{{ request.status }}">
+                                    {{ request.status|capitalize }}
+                                </td>
+                                <td>{{ request.created_at.strftime('%d-%m-%Y %H:%M') }}</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailsModal{{ request.id }}">
+                                        View
+                                    </a>
+                                </td>
+                            </tr>
+
+                            <!-- Modal for each request -->
+                            <div class="modal fade" id="detailsModal{{ request.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Leave Request Details</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p><strong>Leave Type:</strong> {{ request.leave_type.name }}</p>
+                                            <p><strong>Period:</strong> {{ request.start_date.strftime('%d-%m-%Y') }} to {{ request.end_date.strftime('%d-%m-%Y') }}</p>
+                                            <p><strong>Days Requested:</strong> {{ request.days_requested }}</p>
+                                            <p><strong>Reason:</strong> {{ request.reason }}</p>
+                                            <p><strong>Status:</strong> <span class="status-{{ request.status }}">{{ request.status|capitalize }}</span></p>
+                                            {% if request.approver %}
+                                                <p><strong>Processed By:</strong> {{ request.approver.first_name }} {{ request.approver.last_name }}</p>
+                                                <p><strong>Processed On:</strong> {{ request.approval_date.strftime('%d-%m-%Y %H:%M') }}</p>
+                                            {% endif %}
+                                            {% if request.comments %}
+                                                <p><strong>Comments:</strong> {{ request.comments }}</p>
+                                            {% endif %}
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                You haven't submitted any leave requests yet.
+            </div>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

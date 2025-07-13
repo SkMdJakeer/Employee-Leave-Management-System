@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Leave - ELMS</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #fff7e6;
+            color: #5c3d00;
+        }
+
+        .navbar, .card-header, .btn-primary, .btn-warning, .btn-info {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+            color: white !important;
+        }
+
+        .navbar .navbar-brand,
+        .navbar .nav-link,
+        .navbar .nav-link.active,
+        .navbar .nav-link:hover {
+            color: #5c3d00 !important;
+        }
+
+        .card {
+            background-color: #fffaf2;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-primary,
+        .btn-warning,
+        .btn-info {
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-primary:hover,
+        .btn-warning:hover,
+        .btn-info:hover {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%) !important;
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            border-radius: 10px;
+            background-color: #fff3cd;
+            color: #664d03;
+            border: 1px solid #ffeeba;
+        }
+
+        .table thead {
+            background-color: #fbbf24;
+            color: white;
+        }
+
+        
+        .progress-bar.purple {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        .modal-header {
+            background-color: #fbbf24;
+            color: white;
+        }
+
+        .status-pending {
+            color: #f59e0b;
+        }
+
+        .status-approved {
+            color: #10b981;
+        }
+
+        .status-rejected {
+            color: #ef4444;
+        }
+    </style>
+
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
+                <i class="fas fa-calendar-alt me-2"></i>ELMS
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="{{ url_for('dashboard') }}">
+                    <i class="fas fa-home me-1"></i>Dashboard
+                </a>
+                <a class="nav-link" href="{{ url_for('my_requests') }}">
+                    <i class="fas fa-list me-1"></i>My Requests
+                </a>
+                <a class="nav-link" href="{{ url_for('logout') }}">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container main-container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }} me-2"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Leave Balance Information -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-chart-pie me-2"></i>Leave Balance Overview
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="balance-info">
+                            <div class="row">
+                                {% for balance in current_user.leave_balances %}
+                                    {% if balance.year == 2025 %}
+                                        <div class="col-md-6 mb-3">
+                                            <div class="balance-item">
+                                                <span><strong>{{ balance.leave_type.name }}:</strong></span>
+                                                <span>{{ balance.remaining_days }}/{{ balance.total_days }} days</span>
+                                            </div>
+                                                <div class="progress" style="height: 8px;">
+                                                    <div class="progress-bar purple" role="progressbar" 
+                                                        style="width: {{ (balance.remaining_days / balance.total_days * 100) }}%;">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Leave Application Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0">
+                            <i class="fas fa-plus-circle me-2"></i>Apply for Leave
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="POST" id="leaveForm">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="leave_type_id" class="form-label">
+                                        <i class="fas fa-tags me-1"></i>Leave Type
+                                    </label>
+                                    <select class="form-select" id="leave_type_id" name="leave_type_id" required>
+                                        <option value="">Select Leave Type</option>
+                                        {% for leave_type in leave_types %}
+                                            <option value="{{ leave_type.id }}" data-days="{{ leave_type.days_allowed }}">
+                                                {{ leave_type.name }} ({{ leave_type.days_allowed }} days allowed)
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="start_date" class="form-label">
+                                        <i class="fas fa-calendar-day me-1"></i>Start Date
+                                    </label>
+                                    <input type="date" class="form-control" id="start_date" name="start_date" required>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="end_date" class="form-label">
+                                        <i class="fas fa-calendar-day me-1"></i>End Date
+                                    </label>
+                                    <input type="date" class="form-control" id="end_date" name="end_date" required>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <div class="days-calculator">
+                                        <label class="form-label">
+                                            <i class="fas fa-calculator me-1"></i>Days Requested
+                                        </label>
+                                        <div id="daysCount">0 days</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="reason" class="form-label">
+                                    <i class="fas fa-comment me-1"></i>Reason for Leave
+                                </label>
+                                <textarea class="form-control" id="reason" name="reason" rows="4" 
+                                          placeholder="Please provide the reason for your leave request..." required></textarea>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary me-md-2">
+                                    <i class="fas fa-times me-1"></i>Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-1"></i>Submit Request
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Calculate days between start and end date
+        function calculateDays() {
+            const startDate = document.getElementById('start_date').value;
+            const endDate = document.getElementById('end_date').value;
+            
+            if (startDate && endDate) {
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                
+                if (end >= start) {
+                    const timeDiff = end.getTime() - start.getTime();
+                    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24)) + 1;
+                    document.getElementById('daysCount').textContent = daysDiff + ' days';
+                } else {
+                    document.getElementById('daysCount').textContent = 'Invalid date range';
+                }
+            } else {
+                document.getElementById('daysCount').textContent = '0 days';
+            }
+        }
+
+        // Set minimum date to today
+        document.getElementById('start_date').min = new Date().toISOString().split('T')[0];
+        document.getElementById('end_date').min = new Date().toISOString().split('T')[0];
+
+        // Add event listeners
+        document.getElementById('start_date').addEventListener('change', function() {
+            document.getElementById('end_date').min = this.value;
+            calculateDays();
+        });
+
+        document.getElementById('end_date').addEventListener('change', calculateDays);
+
+        // Form validation
+        document.getElementById('leaveForm').addEventListener('submit', function(e) {
+            const startDate = new Date(document.getElementById('start_date').value);
+            const endDate = new Date(document.getElementById('end_date').value);
+            
+            if (endDate < startDate) {
+                e.preventDefault();
+                alert('End date cannot be before start date!');
+                return false;
+            }
+        });
+    </script>
+</body>
+</html>

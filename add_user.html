@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add User - ELMS</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            border-radius: 25px;
+            padding: 12px 30px;
+            font-weight: 500;
+        }
+        .sidebar-nav {
+            padding: 0;
+            list-style: none;
+        }
+        .sidebar-nav li a {
+            display: block;
+            padding: 15px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .sidebar-nav li a:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            padding-left: 30px;
+        }
+        .sidebar-nav li a.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+        .required {
+            color: #dc3545;
+        }
+        .form-section {
+            margin-bottom: 2rem;
+        }
+        .section-title {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-2 d-none d-md-block sidebar">
+                <div class="position-sticky pt-3">
+                    <div class="text-center mb-4">
+                        <h4 class="text-white">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            ELMS
+                        </h4>
+                        <p class="text-white-50 small">Employee Leave Management</p>
+                    </div>
+                    
+                    <ul class="sidebar-nav">
+                        <li><a href="{{ url_for('dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a></li>
+                        <li><a href="{{ url_for('admin_panel') }}"><i class="fas fa-cog me-2"></i>Admin Panel</a></li>
+                        <li><a href="{{ url_for('manage_employees') }}"><i class="fas fa-users me-2"></i>Manage Employees</a></li>
+                        <li><a href="{{ url_for('reports') }}"><i class="fas fa-chart-bar me-2"></i>Reports</a></li>
+                        <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Add New User
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a href="{{ url_for('manage_employees') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-1"></i>Back to Employees
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-user-circle me-2"></i>
+                                    User Information
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form method="POST" id="addUserForm">
+                                    <!-- Basic Information -->
+                                    <div class="form-section">
+                                        <h6 class="section-title">
+                                            <i class="fas fa-id-card me-2"></i>
+                                            Basic Information
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="first_name" class="form-label">
+                                                        First Name <span class="required">*</span>
+                                                    </label>
+                                                    <input type="text" class="form-control" id="first_name" name="first_name" required>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="last_name" class="form-label">
+                                                        Last Name <span class="required">*</span>
+                                                    </label>
+                                                    <input type="text" class="form-control" id="last_name" name="last_name" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="username" class="form-label">
+                                                        Username <span class="required">*</span>
+                                                    </label>
+                                                    <input type="text" class="form-control" id="username" name="username" required>
+                                                    <div class="form-text">Must be unique and contain only letters, numbers, and underscores.</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label">
+                                                        Email <span class="required">*</span>
+                                                    </label>
+                                                    <input type="email" class="form-control" id="email" name="email" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Work Information -->
+                                    <div class="form-section">
+                                        <h6 class="section-title">
+                                            <i class="fas fa-briefcase me-2"></i>
+                                            Work Information
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="department" class="form-label">
+                                                        Department <span class="required">*</span>
+                                                    </label>
+                                                    <select class="form-select" id="department" name="department" required>
+                                                        <option value="">Select Department</option>
+                                                        <option value="HR">Human Resources</option>
+                                                        <option value="IT">Information Technology</option>
+                                                        <option value="Finance">Finance</option>
+                                                        <option value="Marketing">Marketing</option>
+                                                        <option value="Sales">Sales</option>
+                                                        <option value="Operations">Operations</option>
+                                                        <option value="Legal">Legal</option>
+                                                        <option value="Research">Research & Development</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="employee_id" class="form-label">
+                                                        Employee ID
+                                                    </label>
+                                                    <input type="text" class="form-control" id="employee_id" name="employee_id" placeholder="Optional">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Security & Access -->
+                                    <div class="form-section">
+                                        <h6 class="section-title">
+                                            <i class="fas fa-lock me-2"></i>
+                                            Security & Access
+                                        </h6>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="password" class="form-label">
+                                                        Password <span class="required">*</span>
+                                                    </label>
+                                                    <input type="password" class="form-control" id="password" name="password" required>
+                                                    <div class="form-text">Minimum 8 characters with letters and numbers.</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="confirm_password" class="form-label">
+                                                        Confirm Password <span class="required">*</span>
+                                                    </label>
+                                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" class="form-check-input" id="is_manager" name="is_manager">
+                                                    <label class="form-check-label" for="is_manager">
+                                                        <i class="fas fa-user-tie me-1"></i>
+                                                        Manager Role
+                                                    </label>
+                                                    <div class="form-text">Can approve/reject leave requests</div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" class="form-check-input" id="is_admin" name="is_admin">
+                                                    <label class="form-check-label" for="is_admin">
+                                                        <i class="fas fa-user-shield me-1"></i>
+                                                        Administrator
+                                                    </label>
+                                                    <div class="form-text">Full system access</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Form Actions -->
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                                            <i class="fas fa-times me-1"></i>
+                                            Cancel
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-user-plus me-1"></i>
+                                            Add User
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('addUserForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                alert('Passwords do not match!');
+                return false;
+            }
+            
+            if (password.length < 8) {
+                e.preventDefault();
+                alert('Password must be at least 8 characters long!');
+                return false;
+            }
+        });
+
+        // Auto-generate username from first and last name
+        document.getElementById('first_name').addEventListener('blur', generateUsername);
+        document.getElementById('last_name').addEventListener('blur', generateUsername);
+
+        function generateUsername() {
+            const firstName = document.getElementById('first_name').value.toLowerCase();
+            const lastName = document.getElementById('last_name').value.toLowerCase();
+            const usernameField = document.getElementById('username');
+            
+            if (firstName && lastName && !usernameField.value) {
+                usernameField.value = firstName + '.' + lastName;
+            }
+        }
+    </script>
+</body>
+</html>
