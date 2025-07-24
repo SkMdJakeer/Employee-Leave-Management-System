@@ -1,0 +1,49 @@
+<span class="status-badge status-{{ status.value }}">
+    {% if status.value == 'pending' %}
+        <i class="fas fa-clock"></i>
+    {% elif status.value == 'approved' %}
+        <i class="fas fa-check-circle"></i>
+    {% elif status.value == 'rejected' %}
+        <i class="fas fa-times-circle"></i>
+    {% elif status.value == 'cancelled' %}
+        <i class="fas fa-ban"></i>
+    {% endif %}
+    <span>{{ status.value|capitalize }}</span>
+</span>
+
+<style>
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 500;
+        line-height: 1;
+    }
+
+    .status-badge i {
+        font-size: 12px;
+    }
+
+    .status-pending {
+        background: rgba(248, 150, 30, 0.1);
+        color: #f8961e;
+    }
+
+    .status-approved {
+        background: rgba(76, 201, 240, 0.1);
+        color: #4cc9f0;
+    }
+
+    .status-rejected {
+        background: rgba(247, 37, 133, 0.1);
+        color: #f72585;
+    }
+
+    .status-cancelled {
+        background: rgba(108, 117, 125, 0.1);
+        color: #6c757d;
+    }
+</style>
