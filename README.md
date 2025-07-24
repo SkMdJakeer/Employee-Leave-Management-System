@@ -1,5 +1,5 @@
-# flipkart-internship
-Employee Leave Management System (ELMS)
+
+#Employee-Leave-Management-System(ELMS)
 
 ## Overview
 The Employee Leave Management System (ELMS) is a comprehensive web application designed to streamline and automate the process of managing employee leave requests. It provides features for employees to request leave, managers to approve/reject requests, and administrators to manage the system and generate reports.
@@ -23,7 +23,7 @@ The Employee Leave Management System (ELMS) is a comprehensive web application d
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/sairam-somisetti/flipkart-intern.git
+   git clone https://github.com/SkMdJakeer/Employee-Leave-Management-System.git
    cd elms
    ```
 
@@ -103,4 +103,4 @@ This project is licensed under the MIT License. See the LICENSE file for details
 Contributions are welcome! Please fork the repository and submit a pull request with your changes.
 
 ## Contact
-For questions or support, please contact the project maintainer at sgvnpsairam@example.com
+For questions or support, please contact the project maintainer at skmdjakeer@example.com
