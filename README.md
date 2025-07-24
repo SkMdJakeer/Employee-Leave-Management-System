@@ -1,5 +1,5 @@
 
-#Employee-Leave-Management-System(ELMS)
+## Employee-Leave-Management-System(ELMS)
 
 ## Overview
 The Employee Leave Management System (ELMS) is a comprehensive web application designed to streamline and automate the process of managing employee leave requests. It provides features for employees to request leave, managers to approve/reject requests, and administrators to manage the system and generate reports.
